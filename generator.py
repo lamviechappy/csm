@@ -32,7 +32,6 @@ def load_llama3_tokenizer():
         pair=f"{bos}:0 $A:0 {eos}:0 {bos}:1 $B:1 {eos}:1",
         special_tokens=[(f"{bos}", tokenizer.bos_token_id), (f"{eos}", tokenizer.eos_token_id)],
     )
-
     return tokenizer
 
 
@@ -137,7 +136,9 @@ class Generator:
         curr_pos = torch.arange(0, prompt_tokens.size(0)).unsqueeze(0).long().to(self.device)
 
         max_seq_len = 2048
+        # chèn thông tin debug
         max_context_len = max_seq_len - max_generation_len
+        print(f"{max_context_len}")
         if curr_tokens.size(1) >= max_context_len:
             raise ValueError(
                 f"Inputs too long, must be below max_seq_len - max_generation_len: {max_context_len}"

@@ -68,17 +68,95 @@ def main():
     )
 
     # 5. DANH SÁCH HỘI THOẠI
-    conversation = [
-        {"text": "Thank you for calling support. My name is Alex. How can I help you today?", "speaker_id": 1},
-        {"text": "Hi Alex, I'm having some trouble with my account login. It keeps saying 'Invalid Credentials' even after a reset.", "speaker_id": 0},
-        {"text": "I'm sorry to hear that. Let's try to fix it. Are you using a VPN or any browser extensions that might block cookies?", "speaker_id": 1},
-        {"text": "Now that you mention it, I do have a new ad-blocker installed. Could that be the issue?", "speaker_id": 0},
-        {"text": "It's very likely. Could you try disabling it for a moment and refreshing the page?", "speaker_id": 1},
-        {"text": "Wow, that actually worked! I'm back in. Thanks for the quick fix, Alex.", "speaker_id": 0},
-        {"text": "You're very welcome! Is there anything else I can assist you with before you go?", "speaker_id": 1},
-        {"text": "No, that was the only thing. Have a great day!", "speaker_id": 0}
-    ]
+    # conversation = [
+    #     {"text": "Thank you for calling support. My name is Alex. How can I help you today?", "speaker_id": 1},
+    #     {"text": "Hi Alex, I'm having some trouble with my account login. It keeps saying 'Invalid Credentials' even after a reset.", "speaker_id": 0},
+    #     {"text": "I'm sorry to hear that. Let's try to fix it. Are you using a VPN or any browser extensions that might block cookies?", "speaker_id": 1},
+    #     {"text": "Now that you mention it, I do have a new ad-blocker installed. Could that be the issue?", "speaker_id": 0},
+    #     {"text": "It's very likely. Could you try disabling it for a moment and refreshing the page?", "speaker_id": 1},
+    #     {"text": "Wow, that actually worked! I'm back in. Thanks for the quick fix, Alex.", "speaker_id": 0},
+    #     {"text": "You're very welcome! Is there anything else I can assist you with before you go?", "speaker_id": 1},
+    #     {"text": "No, that was the only thing. Have a great day!", "speaker_id": 0}
+    # ]
 
+    conversation =[
+            {
+                    "text": "Hello, everyone, and welcome back to Easy English Together. We're learning English is easy and fun. I'm Emily.",
+                    "speaker_id": 0
+            },
+            {
+                    "text": "Hello, Emily. Hello, everyone. It's great to be here.",
+                    "speaker_id": 1
+            },
+            {
+                    "text": "Hi, Mark. How are you today?",
+                    "speaker_id": 0
+            },
+            {
+                    "text": "I'm doing great. Thank you. And you, you look very happy today.",
+                    "speaker_id": 1
+            },
+            {
+                    "text": "I'm very happy. I'm excited for our topic today.",
+                    "speaker_id": 0
+            },
+            {
+                    "text": "Oh, yes. It's a very good topic. Very important.",
+                    "speaker_id": 1
+            },
+            {
+                    "text": "Yes, exactly. But before we start everyone, please remember to subscribe to our channel.",
+                    "speaker_id": 0
+            },
+            {
+                    "text": "Yes, and click the like button and please share our podcast with your friends and family. It helps us a lot.",
+                    "speaker_id": 1
+            },
+            {
+                    "text": "It really does. Okay, so Mark, are you ready?",
+                    "speaker_id": 0
+            },
+            {
+                    "text": "I am ready. So, what is our topic today?",
+                    "speaker_id": 1
+            },
+            {
+                    "text": "Today, our topic is tell me about yourself.",
+                    "speaker_id": 0
+            },
+            {
+                    "text": "Ah, a very common question. People ask this all the time.",
+                    "speaker_id": 1
+            },
+            {
+                    "text": "They do in a new class, at a new job, when you meet new people.",
+                    "speaker_id": 0
+            },
+            {
+                    "text": "It's true. And sometimes it's hard to know what to say.",
+                    "speaker_id": 1
+            },
+            {
+                    "text": "Yes, so today we will talk about it. We will make it easy and fun.",
+                    "speaker_id": 0
+            },
+            {
+                    "text": "That sounds perfect. So, who starts you or me?",
+                    "speaker_id": 1
+            },
+            {
+                    "text": "Hmm. How about you start Mark? Tell me about yourself.",
+                    "speaker_id": 0
+            },
+            {
+                    "text": "Okay, okay. My turn first. Where do I start?",
+                    "speaker_id": 1
+            },
+            {
+                    "text": "Let's start with the easy one. What is your name?",
+                    "speaker_id": 0
+            }
+    ]
     generated_segments = []
     prompt_segments = [prompt_a, prompt_b]
 

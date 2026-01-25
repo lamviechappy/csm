@@ -1,0 +1,12 @@
+1
+00:00:00,140 --> 00:00:03,140
+And our rule is the same as always.
+
+2
+00:00:03,140 --> 00:00:07,140
+Real conversation first, vocabulary, hidden inside,
+
+3
+00:00:07,140 --> 00:00:10,140
+no boring lists while you're trying to...
+
