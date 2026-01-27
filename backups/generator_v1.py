@@ -11,40 +11,12 @@ from transformers import AutoTokenizer
 from watermarking import CSM_1B_GH_WATERMARK, load_watermarker, watermark
 
 
-import torch
-import soundfile as sf
-from dataclasses import dataclass
-from pathlib import Path
-
 @dataclass
 class Segment:
-    speaker: str  # Đổi sang str để đồng bộ với speaker_id từ project.json
+    speaker: int
     text: str
     # (num_samples,), sample_rate = 24_000
     audio: torch.Tensor
-
-    def save(self, path: Path):
-        """
-        Lưu đoạn audio của segment này thành file .wav.
-        """
-        try:
-            # Đảm bảo đường dẫn là chuỗi để soundfile hiểu
-            file_path = str(path)
-            
-            # Chuyển tensor về numpy array
-            # .squeeze() để loại bỏ các dimension dư thừa (ví dụ [1, 24000] -> [24000])
-            audio_data = self.audio.cpu().squeeze().numpy()
-            
-            # Lưu file với sample rate chuẩn 24kHz (khớp với model GPT-SoVITS/CSM)
-            sf.write(file_path, audio_data, 24000)
-            
-        except Exception as e:
-            print(f"   [ERROR] Không thể lưu file audio {path}: {e}")
-
-    def __len__(self):
-        """Trả về số lượng samples của đoạn audio."""
-        return self.audio.shape[-1]
-
 
 
 def load_llama3_tokenizer():
@@ -164,9 +136,9 @@ class Generator:
         curr_pos = torch.arange(0, prompt_tokens.size(0)).unsqueeze(0).long().to(self.device)
 
         max_seq_len = 2048
-        # # chèn thông tin debug
+        # chèn thông tin debug
         max_context_len = max_seq_len - max_generation_len
-        # print(f"{max_context_len}")
+        print(f"{max_context_len}")
         if curr_tokens.size(1) >= max_context_len:
             raise ValueError(
                 f"Inputs too long, must be below max_seq_len - max_generation_len: {max_context_len}"

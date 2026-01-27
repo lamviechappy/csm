@@ -79,3 +79,24 @@ def parse_conversation(raw_text: str):
 
     flush()
     return conversation
+
+
+import torchaudio
+from generator import Segment
+
+def load_prompt_segment(text_path, audio_path, speaker_id, target_sr):
+    text = open(text_path, "r", encoding="utf-8").read().strip()
+
+    wav, sr = torchaudio.load(audio_path)
+
+    if wav.size(0) > 1:
+        wav = wav[0]
+
+    if sr != target_sr:
+        wav = torchaudio.functional.resample(wav, sr, target_sr)
+
+    return Segment(
+        text=text,
+        speaker=speaker_id,
+        audio=wav.squeeze(0).cpu()
+    )

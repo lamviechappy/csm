@@ -1,3 +1,0 @@
-[0.14 → 3.14] And our rule is the same as always.
-[3.14 → 7.14] Real conversation first, vocabulary, hidden inside,
-[7.14 → 10.14] no boring lists while you're trying to...
