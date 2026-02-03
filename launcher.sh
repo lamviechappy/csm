@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# cd "$(dirname "$0")" # tự động lấy thư mục chứa
 PROJECT_PATH="/Volumes/SSD256/dev-projects/csm"
 cd "$PROJECT_PATH"
 
@@ -8,4 +8,4 @@ cd "$PROJECT_PATH"
 # open "http://127.0.0.1:7860" &
 
 # Chạy ứng dụng
-.venv/bin/python "$PROJECT_PATH/mini_studio_gui_v2_1.py"
+/opt/miniconda3/envs/venv/bin/python "$PROJECT_PATH/mini_studio_gui_v2_1.py"

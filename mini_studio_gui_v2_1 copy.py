@@ -268,52 +268,7 @@ def ensure_episode_environment(episode_dir: Path):
 
     return state, notes
 
-LAST_CONFIG_PATH = APP_DIR / "last_episode_folder.json"
 
-def save_last_folder(folder_path: str):
-    """Lưu đường dẫn thư mục làm việc cuối cùng."""
-    save_json(LAST_CONFIG_PATH, {"last_output_dir": folder_path})
-
-def load_last_folder():
-    """Tải lại đường dẫn thư mục từ lần chạy trước."""
-    data = load_json(LAST_CONFIG_PATH)
-    return data.get("last_output_dir", "") if data else ""
-
-def load_episode_config(folder_path: str):
-    """Load episode.json từ thư mục được chọn và trả về các giá trị cho UI."""
-    if not folder_path:
-        return [gr.update()] * 7 # Trả về update rỗng nếu path trống
-    
-    folder = Path(folder_path)
-    path_json = folder / "episode.json"
-    data = load_json(path_json)
-    
-    # 1. Xử lý Notes (Ưu tiên file có sẵn, không có thì dùng template)
-    notes_content = load_notes(folder) # Hàm này của bạn đã có logic trả về default_notes() nếu file thiếu   
-    if not data:
-        # Nếu chưa có episode.json, trả về giá trị mặc định cùng template notes
-        return ("", "", 5, False, 5, 10, notes_content)
-        # return [gr.update()] * 7
-
-    # Trả về các giá trị theo đúng thứ tự các component trong UI
-    # return (
-    #     data.get("speakers", {}).get("speaker_0", ""),
-    #     data.get("speakers", {}).get("speaker_1", ""),
-    #     data.get("block_size", 5),
-    #     data.get("love_my_mac", {}).get("enabled", False),
-    #     data.get("love_my_mac", {}).get("cool_every", 5),
-    #     data.get("love_my_mac", {}).get("cool_seconds", 10),
-    #     load_notes(path.parent) # Load luôn nội dung notes.md
-    # )
-    return (
-        data.get("speakers", {}).get("speaker_0", ""),
-        data.get("speakers", {}).get("speaker_1", ""),
-        data.get("block_size", 5),
-        data.get("love_my_mac", {}).get("enabled", False),
-        data.get("love_my_mac", {}).get("cool_every", 5),
-        data.get("love_my_mac", {}).get("cool_seconds", 10),
-        notes_content
-    )
 
 # =========================
 # 🧠 SESSION
@@ -643,9 +598,7 @@ def launch_gui():
                 last_love = data.get("love_my_mac", False)
                 last_every = data.get("cool_every", 5)
                 last_sleep = data.get("cool_seconds", 10)
-    # with gr.Blocks(title="Mini Studio GUI v2") as demo:
-    with gr.Blocks(title="Mini Studio GUI v2", css=".prose { font-family: 'SF Pro Display', sans-serif; }") as demo:
-
+    with gr.Blocks(title="Mini Studio GUI v2") as demo:
         gr.Markdown("# 🎙 Mini Studio – Voice Lab (GUI v1)")
         gr.Markdown("CSM conversation studio – strict voice anchoring (wav + txt)")
 
@@ -664,10 +617,12 @@ def launch_gui():
                     insert_btn = gr.Button("➕ Insert Order No.")
                     delete_btn = gr.Button("➖ Delete Order No.")
 
+                # ---------------- NOTES ----------------
+                gr.Markdown("### 📓 Production Notes")
 
+                notes_box = gr.Textbox(lines=14, label="Notes (Markdown supported)")
+                save_notes_btn = gr.Button("💾 Save Notes")
 
-                status_box = gr.Textbox(label="Status", interactive=False)
-                
                 # ---------------- CONTROL ----------------
                 gr.Markdown("### ⚙️ Controls")
 
@@ -678,30 +633,6 @@ def launch_gui():
 
                 status_box = gr.Textbox(label="Status", interactive=False)
 
-                # ---------------- NOTES (Professional Editor) ----------------
-                gr.Markdown("### 📓 Production Notes")
-
-                with gr.Tabs():
-                    with gr.TabItem("✍️ Editor"):
-                        # Tìm đoạn định nghĩa notes_box và sửa lại:
-                        notes_box = gr.Textbox(
-                            value=default_notes(), # Nạp template ngay lập tức
-                            lines=8, 
-                            label=None, 
-                            placeholder="Viết ghi chú bằng Markdown tại đây...",
-                            show_copy_button=True
-                        )
-                        # notes_box = gr.Textbox(
-                        #     lines=15, 
-                        #     label=None, 
-                        #     placeholder="Viết ghi chú bằng Markdown tại đây...",
-                        #     show_copy_button=True
-                        # )
-                        save_notes_btn = gr.Button("💾 Save Notes", variant="primary")
-                        
-                    with gr.TabItem("👁️ Preview"):
-                        # Component này sẽ hiển thị Markdown đã render
-                        notes_preview = gr.Markdown(value="*Chưa có nội dung ghi chú.*")
 
             # =========================
             # 👉 RIGHT PANEL
@@ -709,9 +640,9 @@ def launch_gui():
             with gr.Column(scale=2):
 
                 gr.Markdown("### 🎤 Voice Settings")
-                my_choices=scan_voice_samples()
-                voice0 = gr.Dropdown(choices=my_choices,value=my_choices[1], label="Speaker 0 voice")
-                voice1 = gr.Dropdown(choices=my_choices,value=my_choices[0], label="Speaker 1 voice")
+
+                voice0 = gr.Dropdown(choices=scan_voice_samples(), label="Speaker 0 voice")
+                voice1 = gr.Dropdown(choices=scan_voice_samples(), label="Speaker 1 voice")
 
                 gr.Markdown("### 📦 Block Settings")
                 block_size = gr.Radio([5, 10], value=last_block, label="Turns per block")
@@ -724,11 +655,9 @@ def launch_gui():
                 gr.Markdown("### 📂 Output Directory")
 
                 with gr.Row():
-                # Load folder cuối cùng ngay khi khởi động
-                    output_dir = gr.Textbox(value=load_last_folder(), placeholder="/Users/name/outputs", scale=4, label=None)
+                    output_dir = gr.Textbox(value=last_output, placeholder="/Users/.../outputs", scale=4, label=None)
                     open_folder_btn = gr.Button("📂 Open", scale=1)
 
-                load_config_btn = gr.Button("🔄 Load Episode Config (episode.json)", variant="secondary")
                 gr.Markdown("### ▶️ Latest Block Audio")
                 latest_audio = gr.Audio(autoplay=True)
 
@@ -738,12 +667,8 @@ def launch_gui():
 
         insert_btn.click(fn=insert_order_no, inputs=conversation_box, outputs=conversation_box)
         delete_btn.click(fn=delete_order_no, inputs=conversation_box, outputs=conversation_box)
-        # 1. Tự động lưu last_episode_folder.json mỗi khi Generate thành công
+
         generate_btn.click(
-            fn=lambda path: save_last_folder(path),
-            inputs=[output_dir],
-            outputs=None
-        ).then(
             fn=run_generation,
             inputs=[
                 conversation_box,
@@ -757,60 +682,14 @@ def launch_gui():
             ],
             outputs=[latest_audio, status_box]
         )
-        # generate_btn.click(
-        #     fn=run_generation,
-        #     inputs=[
-        #         conversation_box,
-        #         voice0,
-        #         voice1,
-        #         output_dir,
-        #         block_size,
-        #         love_toggle,
-        #         cool_every,
-        #         cool_seconds
-        #     ],
-        #     outputs=[latest_audio, status_box]
-        # )
 
         stop_btn.click(fn=request_stop, outputs=status_box)
 
         open_folder_btn.click(fn=open_folder, inputs=output_dir, outputs=status_box)
 
-        # save_notes_btn.click(fn=save_notes, inputs=[notes_box, output_dir], outputs=status_box)
+        save_notes_btn.click(fn=save_notes, inputs=[notes_box, output_dir], outputs=status_box)
 
         exit_btn.click(fn=exit_app, outputs=status_box)
-
-        # Cập nhật Preview Markdown ngay khi đang gõ (Real-time)
-        notes_box.change(
-            fn=lambda x: x if x else "*Chưa có nội dung ghi chú.*", 
-            inputs=notes_box, 
-            outputs=notes_preview
-        )
-
-        # Sửa lại Event Save Notes để hiển thị thông báo đẹp hơn
-        def ui_save_notes(content, folder):
-            if not folder:
-                return "❌ Lỗi: Chưa chọn thư mục Output!"
-            try:
-                save_notes(Path(folder), content)
-                return f"✅ Đã lưu vào {datetime.now().strftime('%H:%M:%S')}"
-            except Exception as e:
-                return f"❌ Lỗi khi lưu: {str(e)}"
-
-        save_notes_btn.click(
-            fn=ui_save_notes, 
-            inputs=[notes_box, output_dir], 
-            outputs=status_box
-        )
-
-
-
-        # 2. Xử lý nút Load Config
-        load_config_btn.click(
-            fn=load_episode_config,
-            inputs=[output_dir],
-            outputs=[voice0, voice1, block_size, love_toggle, cool_every, cool_seconds, notes_box]
-        )
 
     demo.launch(inbrowser=True, share=False, allowed_paths=["/Volumes/SSD256"])
 

@@ -74,8 +74,16 @@ class Generator:
         self._text_tokenizer = load_llama3_tokenizer()
 
         device = next(model.parameters()).device
+        self.device = device # Lưu device lại để tái sử dụng
+
         mimi_weight = hf_hub_download(loaders.DEFAULT_REPO, loaders.MIMI_NAME)
-        mimi = loaders.get_mimi(mimi_weight, device=device)
+        # mimi = loaders.get_mimi(mimi_weight, device=device)
+        if "mps" in str(device):
+            # Load lên CPU trước để tránh lỗi SafetensorError: device mps:0
+            mimi = loaders.get_mimi(mimi_weight, device="cpu")
+            mimi.to(device) # Sau đó đẩy sang MPS
+        else:
+            mimi = loaders.get_mimi(mimi_weight, device=device)        
         mimi.set_num_codebooks(32)
         self._audio_tokenizer = mimi
 
@@ -84,6 +92,48 @@ class Generator:
         self.sample_rate = mimi.sample_rate
         self.device = device
 
+    # Thêm hàm này để normalizing text
+    @staticmethod  # <--- Thêm dòng này vào trước def punc_norm
+    def punc_norm(text: str) -> str:
+        """
+            Quick cleanup func for punctuation from LLMs or
+            containing chars not seen often in the dataset
+        """
+        if not text: # Kiểm tra text rỗng
+            return "..."
+        # ... các logic xử lý khác giữ nguyên ...   
+        if len(text) == 0:
+            return "You need to add some text for me to talk."
+
+        # Capitalise first letter
+        if text[0].islower():
+            text = text[0].upper() + text[1:]
+
+        # Remove multiple space chars
+        text = " ".join(text.split())
+
+        # Replace uncommon/llm punc
+        punc_to_replace = [
+            ("…", ", "),
+            (":", ","),
+            ("—", "-"),
+            ("–", "-"),
+            (" ,", ","),
+            ("“", "\""),
+            ("”", "\""),
+            ("‘", "'"),
+            ("’", "'"),
+        ]
+        for old_char_sequence, new_char in punc_to_replace:
+            text = text.replace(old_char_sequence, new_char)
+
+        # Add full stop if no ending punc
+        text = text.rstrip(" ")
+        sentence_enders = {".", "!", "?", "-", ","}
+        if not any(text.endswith(p) for p in sentence_enders):
+            text += "."
+
+        return text
     def _tokenize_text_segment(self, text: str, speaker: int) -> Tuple[torch.Tensor, torch.Tensor]:
         frame_tokens = []
         frame_masks = []
@@ -143,7 +193,7 @@ class Generator:
         topk: int = 50,
     ) -> torch.Tensor:
         self._model.reset_caches()
-
+        text=self.punc_norm(text) # normalizing text
         max_generation_len = int(max_audio_length_ms / 80)
         tokens, tokens_mask = [], []
         for segment in context:

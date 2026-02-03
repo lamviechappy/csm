@@ -1,5 +1,5 @@
 {
-  "last_session": "session_20260127_171313",
+  "last_session": "session_20260130_190814",
   "output_dir": ".",
   "speakers": {
     "speaker_0": "woman-1",
@@ -7,9 +7,9 @@
   },
   "block_size": 5,
   "love_my_mac": {
-    "enabled": false,
+    "enabled": true,
     "cool_every": 5,
-    "cool_seconds": 10
+    "cool_seconds": 30
   },
-  "updated_at": "2026-01-27T17:13:13.359378"
+  "updated_at": "2026-01-30T19:08:35.285550"
 }
