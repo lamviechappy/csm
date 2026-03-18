@@ -288,12 +288,12 @@ def load_episode_config(folder_path: str):
     path_json = folder / "episode.json"
     data = load_json(path_json)
     
-    # 1. Xử lý Notes (Ưu tiên file có sẵn, không có thì dùng template)
-    notes_content = load_notes(folder) # Hàm này của bạn đã có logic trả về default_notes() nếu file thiếu   
-    if not data:
-        # Nếu chưa có episode.json, trả về giá trị mặc định cùng template notes
-        return ("", "", 5, False, 5, 10, notes_content)
-        # return [gr.update()] * 7
+    # # 1. Xử lý Notes (Ưu tiên file có sẵn, không có thì dùng template)
+    # notes_content = load_notes(folder) # Hàm này của bạn đã có logic trả về default_notes() nếu file thiếu   
+    # if not data:
+    #     # Nếu chưa có episode.json, trả về giá trị mặc định cùng template notes
+    #     return ("", "", 5, False, 5, 10, notes_content)
+    #     # return [gr.update()] * 7
 
     # Trả về các giá trị theo đúng thứ tự các component trong UI
     # return (
@@ -309,10 +309,9 @@ def load_episode_config(folder_path: str):
         data.get("speakers", {}).get("speaker_0", ""),
         data.get("speakers", {}).get("speaker_1", ""),
         data.get("block_size", 5),
-        data.get("love_my_mac", {}).get("enabled", False),
+        data.get("love_my_mac", {}).get("enabled", True),
         data.get("love_my_mac", {}).get("cool_every", 5),
-        data.get("love_my_mac", {}).get("cool_seconds", 10),
-        notes_content
+        data.get("love_my_mac", {}).get("cool_seconds", 10)
     )
 
 # =========================
@@ -382,24 +381,6 @@ def exit_app():
 
     return "🚪 App exited. You can close this tab."
 
-# def clear_memory():
-#     try:
-#         if torch.cuda.is_available():
-#             torch.cuda.empty_cache()
-#         gc.collect()
-#     except Exception as e:
-#         print("Clear memory error:", e)
-# def clear_memory():
-#     import gc
-#     gc.collect()
-#     try:
-#         if torch.mps.is_available():
-#             torch.mps.empty_cache()
-#         elif torch.cuda.is_available():
-#             torch.cuda.empty_cache()
-#     except Exception as e:
-#         print("Clear memory error:", e)
-
 def clear_memory():
     import gc
     gc.collect()
@@ -410,15 +391,6 @@ def clear_memory():
         torch.mps.synchronize() # Đợi GPU hoàn tất việc xóa
     elif torch.cuda.is_available():
         torch.cuda.empty_cache()
-
-
-# def load_model():
-#     global GENERATOR
-#     if GENERATOR is None:
-#         print("🚀 Loading CSM model (CPU mode)...")
-#         GENERATOR = load_csm_1b("cpu")
-#         print("✅ Model loaded")
-#     return GENERATOR
 
 def load_model():
     global GENERATOR
@@ -435,7 +407,6 @@ def load_model():
         print(f"✅ Model loaded on {device}")
     return GENERATOR
 
-
 # =========================
 # 🧊 LOVE-MY-MAC MODE
 # =========================
@@ -448,7 +419,6 @@ def love_my_mac_pause(enabled: bool, every_n: int, sleep_s: int, turn_idx: int):
         clear_memory()
         time.sleep(sleep_s)
 
-
 # =========================
 # 🎧 BLOCK CONCAT
 # =========================
@@ -457,8 +427,6 @@ def save_block(block_segments, blocks_dir: Path, block_index: int, sr: int):
     path = blocks_dir / f"block_{block_index:03d}.wav"
     torchaudio.save(str(path), block_audio.unsqueeze(0), sr)
     return str(path)
-
-
 
 # =========================
 # 🎙 GENERATION PIPELINE
@@ -630,9 +598,9 @@ def launch_gui():
     # ---- Load last session if exists
     last_output = ""
     last_block = 5
-    last_love = False
+    last_love = True
     last_every = 5
-    last_sleep = 10
+    last_sleep = 60
 
     for folder in APP_DIR.iterdir():
         if folder.is_dir():
@@ -640,11 +608,12 @@ def launch_gui():
             if data:
                 last_output = data.get("output_dir", "")
                 last_block = data.get("block_size", 5)
-                last_love = data.get("love_my_mac", False)
+                last_love = data.get("love_my_mac", True)
                 last_every = data.get("cool_every", 5)
-                last_sleep = data.get("cool_seconds", 10)
+                last_sleep = data.get("cool_seconds", 60)
     # with gr.Blocks(title="Mini Studio GUI v2") as demo:
-    with gr.Blocks(title="Mini Studio GUI v2", css=".prose { font-family: 'SF Pro Display', sans-serif; }") as demo:
+    # with gr.Blocks(title="Mini Studio GUI v2", css=".prose { font-family: 'SF Pro Display', sans-serif; }") as demo:
+    with gr.Blocks(title="Mini Studio GUI v2") as demo:
 
         gr.Markdown("# 🎙 Mini Studio – Voice Lab (GUI v1)")
         gr.Markdown("CSM conversation studio – strict voice anchoring (wav + txt)")
@@ -666,7 +635,7 @@ def launch_gui():
 
 
 
-                status_box = gr.Textbox(label="Status", interactive=False)
+                # status_box = gr.Textbox(label="Status", interactive=False)
                 
                 # ---------------- CONTROL ----------------
                 gr.Markdown("### ⚙️ Controls")
@@ -678,30 +647,8 @@ def launch_gui():
 
                 status_box = gr.Textbox(label="Status", interactive=False)
 
-                # ---------------- NOTES (Professional Editor) ----------------
-                gr.Markdown("### 📓 Production Notes")
-
-                with gr.Tabs():
-                    with gr.TabItem("✍️ Editor"):
-                        # Tìm đoạn định nghĩa notes_box và sửa lại:
-                        notes_box = gr.Textbox(
-                            value=default_notes(), # Nạp template ngay lập tức
-                            lines=8, 
-                            label=None, 
-                            placeholder="Viết ghi chú bằng Markdown tại đây...",
-                            show_copy_button=True
-                        )
-                        # notes_box = gr.Textbox(
-                        #     lines=15, 
-                        #     label=None, 
-                        #     placeholder="Viết ghi chú bằng Markdown tại đây...",
-                        #     show_copy_button=True
-                        # )
-                        save_notes_btn = gr.Button("💾 Save Notes", variant="primary")
-                        
-                    with gr.TabItem("👁️ Preview"):
-                        # Component này sẽ hiển thị Markdown đã render
-                        notes_preview = gr.Markdown(value="*Chưa có nội dung ghi chú.*")
+                gr.Markdown("### ▶️ Latest Block Audio")
+                latest_audio = gr.Audio(autoplay=True)
 
             # =========================
             # 👉 RIGHT PANEL
@@ -729,8 +676,8 @@ def launch_gui():
                     open_folder_btn = gr.Button("📂 Open", scale=1)
 
                 load_config_btn = gr.Button("🔄 Load Episode Config (episode.json)", variant="secondary")
-                gr.Markdown("### ▶️ Latest Block Audio")
-                latest_audio = gr.Audio(autoplay=True)
+                # gr.Markdown("### ▶️ Latest Block Audio")
+                # latest_audio = gr.Audio(autoplay=True)
 
         # =========================
         # 🔗 EVENTS
@@ -757,37 +704,14 @@ def launch_gui():
             ],
             outputs=[latest_audio, status_box]
         )
-        # generate_btn.click(
-        #     fn=run_generation,
-        #     inputs=[
-        #         conversation_box,
-        #         voice0,
-        #         voice1,
-        #         output_dir,
-        #         block_size,
-        #         love_toggle,
-        #         cool_every,
-        #         cool_seconds
-        #     ],
-        #     outputs=[latest_audio, status_box]
-        # )
 
         stop_btn.click(fn=request_stop, outputs=status_box)
 
         open_folder_btn.click(fn=open_folder, inputs=output_dir, outputs=status_box)
 
-        # save_notes_btn.click(fn=save_notes, inputs=[notes_box, output_dir], outputs=status_box)
 
         exit_btn.click(fn=exit_app, outputs=status_box)
 
-        # Cập nhật Preview Markdown ngay khi đang gõ (Real-time)
-        notes_box.change(
-            fn=lambda x: x if x else "*Chưa có nội dung ghi chú.*", 
-            inputs=notes_box, 
-            outputs=notes_preview
-        )
-
-        # Sửa lại Event Save Notes để hiển thị thông báo đẹp hơn
         def ui_save_notes(content, folder):
             if not folder:
                 return "❌ Lỗi: Chưa chọn thư mục Output!"
@@ -797,22 +721,14 @@ def launch_gui():
             except Exception as e:
                 return f"❌ Lỗi khi lưu: {str(e)}"
 
-        save_notes_btn.click(
-            fn=ui_save_notes, 
-            inputs=[notes_box, output_dir], 
-            outputs=status_box
-        )
-
-
-
         # 2. Xử lý nút Load Config
         load_config_btn.click(
             fn=load_episode_config,
             inputs=[output_dir],
-            outputs=[voice0, voice1, block_size, love_toggle, cool_every, cool_seconds, notes_box]
+            outputs=[voice0, voice1, block_size, love_toggle, cool_every, cool_seconds]
         )
 
-    demo.launch(inbrowser=True, share=False, allowed_paths=["/Volumes/SSD256"])
+    demo.launch(inbrowser=True, share=False, allowed_paths=["/Volumes/WD500"], css=".prose { font-family: 'SF Pro Display', sans-serif; }")
 
 
 # =========================

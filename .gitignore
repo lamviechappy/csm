@@ -42,7 +42,7 @@ test_outputs/
 basic_audio.wav
 full_conversation.wav
 context_audio.wav
-
+session_*/
 
 # Model files
 *.pt
