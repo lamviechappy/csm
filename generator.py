@@ -8,7 +8,7 @@ from models import Model
 from moshi.models import loaders
 from tokenizers.processors import TemplateProcessing
 from transformers import AutoTokenizer
-from watermarking import CSM_1B_GH_WATERMARK, load_watermarker, watermark
+from backups.watermarking import CSM_1B_GH_WATERMARK, load_watermarker, watermark
 
 
 import torch

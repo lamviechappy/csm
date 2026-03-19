@@ -47,3 +47,7 @@ session_*/
 # Model files
 *.pt
 *.ckpt
+
+
+backups/
+personal-docs/
